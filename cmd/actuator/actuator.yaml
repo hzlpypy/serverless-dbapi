@@ -1,0 +1,6 @@
+server:
+  port: 8081
+
+database:
+  driver-name: mysql
+  url: 'root:123456@tcp(localhost:3306)/test?charset=utf8'
