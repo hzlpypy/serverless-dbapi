@@ -1,8 +1,6 @@
-package result
+package tool
 
-import (
-	"serverless-db/pkg/exception"
-)
+import "serverless-dbapi/pkg/exception"
 
 type Result[T any] struct {
 	Data any

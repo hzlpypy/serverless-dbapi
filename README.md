@@ -1,4 +1,4 @@
-# serverless-db
+# serverless-dbapi (building)
 
 The database data is exposed to the http api through the serverless architecture.
 

@@ -1,4 +1,4 @@
-module serverless-db
+module serverless-dbapi
 
 go 1.19
 

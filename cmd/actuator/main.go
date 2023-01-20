@@ -1,26 +1,35 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"serverless-db/pkg/actuator"
+	"serverless-dbapi/pkg/actuator"
+	"serverless-dbapi/pkg/cfg"
+	"serverless-dbapi/pkg/managercenter"
+	"serverless-dbapi/pkg/mode"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
 )
 
 func main() {
+	// load config file
 	file, err := os.ReadFile("./actuator.yaml")
 	if err != nil {
 		panic(err)
 	}
-	config := actuator.Config{}
+	config := cfg.Config{}
 	err = yaml.Unmarshal(file, &config)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(config)
-	actuator, err := actuator.New(config)
+
+	// mark server mode: mock、standalone、cluster
+	mode.MODE = config.Mode
+
+	// new actuator
+	actuator, err := actuator.New(config.Actuator)
+	actuator.SetManagerCenterServer(managercenter.NewManagerCenterServer())
+
 	if err != nil {
 		panic(err)
 	}

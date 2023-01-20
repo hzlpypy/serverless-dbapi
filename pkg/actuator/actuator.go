@@ -2,7 +2,8 @@ package actuator
 
 import (
 	"database/sql"
-	"serverless-db/pkg/server"
+	"serverless-dbapi/pkg/managercenter"
+	"serverless-dbapi/pkg/server"
 	"strconv"
 	"time"
 )
@@ -30,35 +31,43 @@ type DatabaseConfig struct {
 
 // for execing db api
 type Actuator struct {
-	cfg    Config
-	ser    server.Server
-	dbConn *sql.DB
+	cfg                 Config
+	ser                 server.Server
+	dbConn              *sql.DB
+	managerCenterServer managercenter.ManagerCenterServer
 }
 
-func New(cfg Config) (Actuator, error) {
-	return Actuator{
-		cfg: cfg,
+func New(cfg Config) (*Actuator, error) {
+	// open connect
+	db, err := sql.Open(cfg.Database.DriverName, cfg.Database.Url)
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxIdleConns(cfg.Database.MaxIdleCount)
+	db.SetMaxOpenConns(cfg.Database.MaxOpen)
+	db.SetConnMaxLifetime(cfg.Database.MaxLifetime)
+	db.SetConnMaxIdleTime(cfg.Database.MaxIdleTime)
+
+	return &Actuator{
+		dbConn: db,
+		cfg:    cfg,
 	}, nil
+}
+
+func (a *Actuator) SetManagerCenterServer(server managercenter.ManagerCenterServer) *Actuator {
+	a.managerCenterServer = server
+	return a
 }
 
 func (a *Actuator) Run() error {
 	// database init
-	db, err := sql.Open(a.cfg.Database.DriverName, a.cfg.Database.Url)
+	err := a.dbConn.Ping()
 	if err != nil {
 		return err
 	}
-	db.SetMaxIdleConns(a.cfg.Database.MaxIdleCount)
-	db.SetMaxOpenConns(a.cfg.Database.MaxOpen)
-	db.SetConnMaxLifetime(a.cfg.Database.MaxLifetime)
-	db.SetConnMaxIdleTime(a.cfg.Database.MaxIdleTime)
-	err = db.Ping()
-	if err != nil {
-		return err
-	}
-	a.dbConn = db
 
 	// http server init
-	handle := NewHandle(a.dbConn, &server.MockManagerCenterServer{})
+	handle := NewHandle(a.dbConn, a.managerCenterServer)
 	a.ser = server.NewActuatorServer(handle.Handler)
 	a.ser.Run(":" + strconv.Itoa(a.cfg.Serer.Port))
 
