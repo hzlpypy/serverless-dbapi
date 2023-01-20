@@ -5,9 +5,9 @@ import (
 	"io"
 	"net/http"
 	"serverless-dbapi/pkg/exception"
-	"serverless-dbapi/pkg/mode"
 	"serverless-dbapi/pkg/tool"
 	"serverless-dbapi/pkg/valueobject"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,30 +16,55 @@ type Server interface {
 	Run(addr ...string) error
 }
 
-type MemoryActuatorServer struct {
+var lock sync.Mutex
+var ss *sharedServer
+
+// shared server: when more than one services are in the same stand-alone
+type sharedServer struct {
+	server *gin.Engine
+	lock   sync.Mutex
+	isRun  bool
 }
 
-func (m *MemoryActuatorServer) Run(addr ...string) error {
+func (s *sharedServer) Run(addr ...string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if !s.isRun {
+		err := s.server.Run()
+		if err == nil {
+			s.isRun = true
+		}
+		return err
+	}
 	return nil
+}
+
+func newSharedServer() *sharedServer {
+	lock.Lock()
+	if ss == nil {
+		ss = &sharedServer{
+			server: gin.Default(),
+			isRun:  false,
+		}
+	}
+	defer lock.Unlock()
+	return ss
 }
 
 // actuator server
 func NewActuatorServer(function func(params *valueobject.Params) tool.Result[any]) Server {
-	if mode.MODE == mode.STANDALONE {
-		return &MemoryActuatorServer{}
-	} else {
-		// impl by gin
-		r := gin.Default()
-		r.POST("/api", func(ctx *gin.Context) {
-			params, err := parseRequest(*ctx.Request)
-			if err != nil {
-				ctx.JSON(exception.PARSE_REQUEST_ERROR.Code, exception.PARSE_REQUEST_ERROR.Msg)
-			}
-			result := function(params)
-			ctx.JSON(200, tool.ResultToResponse(result))
-		})
-		return r
-	}
+	// impl by gin
+	sharedServer := newSharedServer()
+	sharedServer.server.POST("/actuator/api", func(ctx *gin.Context) {
+		params, err := parseRequest(*ctx.Request)
+		if err != nil {
+			ctx.JSON(exception.PARSE_REQUEST_ERROR.Code, exception.PARSE_REQUEST_ERROR.Msg)
+		}
+		result := function(params)
+		ctx.JSON(200, tool.ResultToResponse(result))
+	})
+	return sharedServer.server
+
 }
 
 // parse request

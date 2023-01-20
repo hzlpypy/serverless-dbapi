@@ -1,6 +1,9 @@
 package tool
 
-import "serverless-dbapi/pkg/exception"
+import (
+	"fmt"
+	"serverless-dbapi/pkg/exception"
+)
 
 type Result[T any] struct {
 	Data any
@@ -14,7 +17,10 @@ func SuccessResult(T any) Result[any] {
 	}
 }
 
-func ErrorResult(err *exception.BaseError) Result[any] {
+func ErrorResult(err *exception.BaseError, args ...string) Result[any] {
+	if len(args) > 0 {
+		err.Msg = fmt.Sprintf(err.Msg, args)
+	}
 	return Result[any]{
 		Data: nil,
 		Err:  err,

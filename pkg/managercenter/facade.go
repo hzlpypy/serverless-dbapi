@@ -24,10 +24,12 @@ type MockManagerCenterServer struct {
 // );
 func (m *MockManagerCenterServer) GetApiConfigByApiId(apiId string) entity.ApiConfig {
 	return entity.ApiConfig{
-		ApiId:    apiId,
-		ApiType:  entity.DATA_API_TYPE,
-		Sql:      "select * from tb_tmp01 where id = ? and deptId = ?",
-		ParamKey: []string{"id", "deptId"},
+		Id:           apiId,
+		ApiGroupId:   "1",
+		ApiType:      entity.DATA_API_TYPE,
+		Sql:          "select * from tb_tmp01 where id = ? and deptId = ?",
+		ParamKey:     []string{"id", "deptId"},
+		DataSourceId: "1",
 	}
 }
 

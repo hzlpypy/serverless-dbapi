@@ -13,13 +13,13 @@ import (
 const API_ID_FROM_QUERY = "apiId"
 
 type Handler struct {
-	dbConn        *sql.DB
+	dbConns       map[string]*sql.DB
 	managerCenter managercenter.ManagerCenterServer
 }
 
-func NewHandle(dbConn *sql.DB, managerCenter managercenter.ManagerCenterServer) Handler {
+func NewHandle(dbConns map[string]*sql.DB, managerCenter managercenter.ManagerCenterServer) Handler {
 	return Handler{
-		dbConn:        dbConn,
+		dbConns:       dbConns,
 		managerCenter: managerCenter,
 	}
 }
@@ -39,15 +39,18 @@ func (h *Handler) exec(apiConfig entity.ApiConfig, params *valueobject.Params) t
 	// create args by list order
 	args := make([]any, len(apiConfig.ParamKey))
 	for index, value := range apiConfig.ParamKey {
-		if value, ok := params.Body[value]; ok {
-			args[index] = value
+		if v, ok := params.Body[value]; ok {
+			args[index] = v
 		} else {
-			return tool.ErrorResult(exception.REQUIRE_PARAM)
+			return tool.ErrorResult(exception.REQUIRE_PARAM, value)
 		}
 	}
 
 	// exec sql
-	rows, err := h.dbConn.Query(apiConfig.Sql, args...)
+	if _, ok := h.dbConns[apiConfig.DataSourceId]; !ok {
+		return tool.ErrorResult(exception.DATASOURCE_NOT_FOUND)
+	}
+	rows, err := h.dbConns[apiConfig.DataSourceId].Query(apiConfig.Sql, args...)
 	if err != nil {
 		fmt.Println(err)
 		return tool.SimpleErrorResult(500, err.Error())
