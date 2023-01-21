@@ -1,9 +1,9 @@
 package tool
 
 type Response[T any] struct {
-	Code int
-	Msg  string
-	Data any
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Data any    `json:"data"`
 }
 
 const SUCCESS_CODE = 0

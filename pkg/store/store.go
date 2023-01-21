@@ -14,9 +14,9 @@ import (
 )
 
 type Store interface {
-	SaveDataBase(database entity.DatabaseConfig) error
-	SaveApiGroup(apiGroup entity.ApiGroupConfig) error
-	SaveApi(apiConfig entity.ApiConfig) error
+	SaveDataBase(database entity.DatabaseConfig) (string, error)
+	SaveApiGroup(apiGroup entity.ApiGroupConfig) (string, error)
+	SaveApi(apiConfig entity.ApiConfig) (string, error)
 	GetDataBases() ([]*entity.DatabaseConfig, error)
 	GetApiGroups() ([]entity.ApiGroupConfig, error)
 	GetApis(apiGroupId string) ([]entity.ApiConfig, error)
@@ -45,22 +45,22 @@ type EtcdStore struct {
 	prefix string
 }
 
-func (e *EtcdStore) SaveDataBase(database entity.DatabaseConfig) error {
+func (e *EtcdStore) SaveDataBase(database entity.DatabaseConfig) (string, error) {
 	return e.commonPut(&database)
 }
 
-func (e *EtcdStore) SaveApiGroup(apiGroup entity.ApiGroupConfig) error {
+func (e *EtcdStore) SaveApiGroup(apiGroup entity.ApiGroupConfig) (string, error) {
 	return e.commonPut(&apiGroup)
 }
 
-func (e *EtcdStore) SaveApi(apiConfig entity.ApiConfig) error {
+func (e *EtcdStore) SaveApi(apiConfig entity.ApiConfig) (string, error) {
 	err := fillId(&apiConfig)
 	if err != nil {
-		return err
+		return "", err
 	}
 	dataByte, err := json.Marshal(apiConfig)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	txn := e.client.Txn(context.Background())
@@ -69,27 +69,27 @@ func (e *EtcdStore) SaveApi(apiConfig entity.ApiConfig) error {
 		clientv3.OpPut(tool.StringBuilder(e.prefix, entity.API_PREFIX, apiConfig.GetId()), string(dataByte)),
 	).Else().Commit()
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return apiConfig.Id, nil
 }
 
-func (e *EtcdStore) commonPut(entity entity.IdCommon) error {
+func (e *EtcdStore) commonPut(entity entity.IdCommon) (string, error) {
 	err := fillId(entity)
 	if err != nil {
-		return err
+		return "", err
 	}
 	dataByte, err := json.Marshal(entity)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_, err = e.client.Put(context.Background(), tool.StringBuilder(e.prefix, entity.GetPrefixId()), string(dataByte))
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return entity.GetId(), nil
 }
 
 func fillId(entity entity.IdCommon) error {
