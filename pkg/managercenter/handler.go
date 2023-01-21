@@ -31,11 +31,11 @@ func (h *Handler) SaveDataBase(params *valueobject.Params) tool.Result[any] {
 	if err := valid.Struct(database); err != nil {
 		return tool.ErrorResult[any](exception.REQUIRE_PARAM, err.Error())
 	}
-	err = h.store.SaveDataBase(*database)
+	id, err := h.store.SaveDataBase(*database)
 	if err != nil {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
-	return tool.SuccessResult[any](nil)
+	return tool.SuccessResult[any](id)
 }
 
 func (h *Handler) SaveApiGroup(params *valueobject.Params) tool.Result[any] {
@@ -48,11 +48,11 @@ func (h *Handler) SaveApiGroup(params *valueobject.Params) tool.Result[any] {
 	if err := valid.Struct(apiGroup); err != nil {
 		return tool.ErrorResult[any](exception.REQUIRE_PARAM, err.Error())
 	}
-	err = h.store.SaveApiGroup(*apiGroup)
+	id, err := h.store.SaveApiGroup(*apiGroup)
 	if err != nil {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
-	return tool.SuccessResult[any](nil)
+	return tool.SuccessResult[any](id)
 }
 
 func (h *Handler) SaveApi(params *valueobject.Params) tool.Result[any] {
@@ -65,11 +65,11 @@ func (h *Handler) SaveApi(params *valueobject.Params) tool.Result[any] {
 	if err := valid.Struct(apiInfo); err != nil {
 		return tool.ErrorResult[any](exception.REQUIRE_PARAM, err.Error())
 	}
-	err = h.store.SaveApi(*apiInfo)
+	id, err := h.store.SaveApi(*apiInfo)
 	if err != nil {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
-	return tool.SuccessResult[any](nil)
+	return tool.SuccessResult[any](id)
 }
 
 func (h *Handler) GetDataBases(params *valueobject.Params) tool.Result[any] {
