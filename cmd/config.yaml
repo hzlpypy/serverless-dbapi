@@ -1,0 +1,16 @@
+mode: standalone
+server:
+  port: 8081
+
+actuator:
+  databases:
+    - id: '1'
+      driver-name: mysql
+      url: 'root:123456@tcp(localhost:3306)/test?charset=utf8'
+
+manager-center:
+  store:
+    etcd:
+      prefix: '/prod'
+      endpoints: 
+        - '127.0.0.1:2379'

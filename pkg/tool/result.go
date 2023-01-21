@@ -10,25 +10,25 @@ type Result[T any] struct {
 	Err  *exception.BaseError
 }
 
-func SuccessResult(T any) Result[any] {
-	return Result[any]{
-		Data: T,
+func SuccessResult[T any](data T) Result[T] {
+	return Result[T]{
+		Data: data,
 		Err:  nil,
 	}
 }
 
-func ErrorResult(err *exception.BaseError, args ...string) Result[any] {
+func ErrorResult[T any](err *exception.BaseError, args ...string) Result[T] {
 	if len(args) > 0 {
 		err.Msg = fmt.Sprintf(err.Msg, args)
 	}
-	return Result[any]{
+	return Result[T]{
 		Data: nil,
 		Err:  err,
 	}
 }
 
-func SimpleErrorResult(code int, msg string) Result[any] {
-	return Result[any]{
+func SimpleErrorResult[T any](code int, msg string) Result[T] {
+	return Result[T]{
 		Data: nil,
 		Err:  exception.New(code, msg),
 	}

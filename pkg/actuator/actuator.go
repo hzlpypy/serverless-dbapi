@@ -10,13 +10,13 @@ import (
 
 // for execing db api
 type Actuator struct {
-	cfg                 cfg.ActuactorConfig
+	cfg                 *cfg.ActuactorConfig
 	ser                 server.Server
 	dbConns             map[string]*sql.DB
 	managerCenterServer managercenter.ManagerCenterServer
 }
 
-func New(cfg cfg.ActuactorConfig) (*Actuator, error) {
+func New(cfg *cfg.ActuactorConfig) (*Actuator, error) {
 	// open connect
 	dbMap := make(map[string]*sql.DB)
 	if len(cfg.Databases) > 0 {
@@ -44,7 +44,7 @@ func (a *Actuator) SetManagerCenterServer(server managercenter.ManagerCenterServ
 	return a
 }
 
-func (a *Actuator) Run() error {
+func (a *Actuator) Run(port int) error {
 	// database init
 	if len(a.dbConns) > 0 {
 		for _, value := range a.dbConns {
@@ -58,7 +58,7 @@ func (a *Actuator) Run() error {
 	// http server init
 	handle := NewHandle(a.dbConns, a.managerCenterServer)
 	a.ser = server.NewActuatorServer(handle.Handler)
-	a.ser.Run(":" + strconv.Itoa(a.cfg.Serer.Port))
+	a.ser.Run(":" + strconv.Itoa(port))
 
 	return nil
 }

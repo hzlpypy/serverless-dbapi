@@ -1,6 +1,9 @@
 package tool
 
-import "net/url"
+import (
+	"net/url"
+	"strings"
+)
 
 func BuildURL(path string, params map[string][]string) (string, error) {
 	paramMap := url.Values{}
@@ -17,4 +20,12 @@ func BuildURL(path string, params map[string][]string) (string, error) {
 	}
 	base.RawQuery = paramMap.Encode()
 	return base.String(), nil
+}
+
+func StringBuilder(args ...string) string {
+	var build strings.Builder
+	for _, value := range args {
+		build.WriteString(value)
+	}
+	return build.String()
 }

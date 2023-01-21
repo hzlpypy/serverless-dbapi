@@ -13,7 +13,7 @@ import (
 
 func main() {
 	// load config file
-	file, err := os.ReadFile("./actuator.yaml")
+	file, err := os.ReadFile("../config.yaml")
 	if err != nil {
 		panic(err)
 	}
@@ -26,14 +26,29 @@ func main() {
 	// mark server mode: mock、standalone、cluster
 	mode.MODE = config.Mode
 
-	// new actuator
-	actuator, err := actuator.New(config.Actuator)
-	actuator.SetManagerCenterServer(managercenter.NewManagerCenterServer())
-
+	// new manager center
+	managerCenterServer, err := managercenter.NewManagerCenterServer(config.ManagerCenter)
 	if err != nil {
 		panic(err)
 	}
-	err = actuator.Run()
+
+	if mode.MOCK != mode.CLUSTER {
+		// if the mode is not cluster, get all databases for manager center
+		// if the mode is cluster, just get from config
+		config.Actuator.Databases, err = managerCenterServer.GetDataBases()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// new actuator
+	actuator, err := actuator.New(config.Actuator)
+	if err != nil {
+		panic(err)
+	}
+	actuator.SetManagerCenterServer(managerCenterServer)
+
+	err = actuator.Run(config.Serer.Port)
 	if err != nil {
 		panic(err)
 	}

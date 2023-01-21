@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"serverless-dbapi/pkg/tool"
+	"time"
+)
 
 // api type
 const (
@@ -9,14 +12,14 @@ const (
 
 // datasource info
 type DatabaseConfig struct {
-	Id           string        `yaml:"id"`
-	Name         string        `yaml:"name"`
-	DriverName   string        `yaml:"driver-name"`
-	Url          string        `yaml:"url"`            //database url
-	MaxIdleCount int           `yaml:"max-idle-count"` // zero means defaultMaxIdleConns; negative means 0
-	MaxOpen      int           `yaml:"max-open"`       // <= 0 means unlimited
-	MaxLifetime  time.Duration `yaml:"max-lifetime"`   // maximum amount of time a connection may be reused
-	MaxIdleTime  time.Duration `yaml:"max-idle-time"`  // maximum amount of time a connection may be idle before being closed
+	Id           string        `yaml:"id" json:"id,omitempty"`
+	Name         string        `yaml:"name" json:"name,omitempty" validate:"required"`
+	DriverName   string        `yaml:"driver-name" json:"driverName,omitempty" validate:"required"`
+	Url          string        `yaml:"url" json:"url,omitempty" validate:"required"` //database url
+	MaxIdleCount int           `yaml:"max-idle-count" json:"maxIdleCount"`           // zero means defaultMaxIdleConns; negative means 0
+	MaxOpen      int           `yaml:"max-open" json:"maxOpen"`                      // <= 0 means unlimited
+	MaxLifetime  time.Duration `yaml:"max-lifetime" json:"maxLifetime"`              // maximum amount of time a connection may be reused
+	MaxIdleTime  time.Duration `yaml:"max-idle-time" json:"maxIdletime"`             // maximum amount of time a connection may be idle before being closed
 }
 
 const (
@@ -34,13 +37,13 @@ func (d *DatabaseConfig) GetId() string {
 }
 
 func (d *DatabaseConfig) GetPrefixId() string {
-	return DATASOURCE_PREFIX + d.Id
+	return tool.StringBuilder(DATASOURCE_PREFIX, d.Id)
 }
 
 // api group info
 type ApiGroupConfig struct {
-	Id   string
-	Name string
+	Id   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
 }
 
 func (d *ApiGroupConfig) SetId(id string) {
@@ -52,17 +55,17 @@ func (d *ApiGroupConfig) GetId() string {
 }
 
 func (d *ApiGroupConfig) GetPrefixId() string {
-	return API_GROUP_PREFIX + d.Id
+	return tool.StringBuilder(API_GROUP_PREFIX, d.Id)
 }
 
 // api config info
 type ApiConfig struct {
-	Id           string
-	ApiGroupId   string
-	ApiType      int
-	Sql          string
-	ParamKey     []string
-	DataSourceId string
+	Id           string   `json:"id,omitempty"`
+	ApiGroupId   string   `json:"apiGroupId,omitempty" validate:"required"`
+	ApiType      int      `json:"apiType,omitempty" validate:"required"`
+	Sql          string   `json:"sql,omitempty" validate:"required"`
+	ParamKey     []string `json:"paramKey,omitempty" validate:"required"`
+	DataSourceId string   `json:"datasourceId,omitempty" validate:"required"`
 }
 
 func (d *ApiConfig) SetId(id string) {
@@ -75,7 +78,7 @@ func (d *ApiConfig) GetId() string {
 
 // for quickly select
 func (d *ApiConfig) GetPrefixId() string {
-	return API_GROUP_PREFIX + d.ApiGroupId + API_PREFIX + d.Id
+	return tool.StringBuilder(API_GROUP_PREFIX, d.ApiGroupId, API_PREFIX, d.Id)
 }
 
 type IdCommon interface {

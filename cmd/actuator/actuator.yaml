@@ -1,9 +1,0 @@
-mode: mock
-
-actuator:
-  server:
-    port: 8081
-  databases:
-    - id: '1'
-      driver-name: mysql
-      url: 'root:123456@tcp(localhost:3306)/test?charset=utf8'

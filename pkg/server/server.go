@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"serverless-dbapi/pkg/exception"
@@ -56,34 +55,52 @@ func NewActuatorServer(function func(params *valueobject.Params) tool.Result[any
 	// impl by gin
 	sharedServer := newSharedServer()
 	sharedServer.server.POST("/actuator/api", func(ctx *gin.Context) {
-		params, err := parseRequest(*ctx.Request)
+		params, err := parseRequest(*ctx.Request, true)
 		if err != nil {
-			ctx.JSON(exception.PARSE_REQUEST_ERROR.Code, exception.PARSE_REQUEST_ERROR.Msg)
+			ctx.JSON(200, tool.ErrorResult[any](exception.PARSE_REQUEST_ERROR))
+			return
 		}
 		result := function(params)
 		ctx.JSON(200, tool.ResultToResponse(result))
 	})
 	return sharedServer.server
+}
 
+func NewManagerCenterServer(functions map[string]func(params *valueobject.Params) tool.Result[any]) Server {
+	sharedServer := newSharedServer()
+	sharedServer.server.Any("/manager-center/:resource", func(ctx *gin.Context) {
+		params, err := parseRequest(*ctx.Request, true)
+		if err != nil {
+			ctx.JSON(200, tool.ErrorResult[any](exception.PARSE_REQUEST_ERROR))
+			return
+		}
+		function := functions[tool.StringBuilder(ctx.Request.Method, "/", ctx.Param("resource"))]
+		if function == nil {
+			ctx.JSON(404, tool.ErrorResult[any](exception.HTTP_ROUTER_ERROR))
+			return
+		}
+		result := function(params)
+		ctx.JSON(200, tool.ResultToResponse(result))
+	})
+	return sharedServer.server
 }
 
 // parse request
-func parseRequest(request http.Request) (*valueobject.Params, error) {
+func parseRequest(request http.Request, haveBody bool) (*valueobject.Params, error) {
 	// get query params
 	paramsQuery := request.URL.Query()
 
+	params := &valueobject.Params{}
+	params.QueryParams = paramsQuery
+
 	// parse body
-	paramsBody := make(map[string]any)
-	s, _ := io.ReadAll(request.Body)
-	if len(s) > 0 {
-		err := json.Unmarshal(s, &paramsBody)
+	if haveBody {
+		body, err := io.ReadAll(request.Body)
 		if err != nil {
 			return nil, err
 		}
+		params.Body = body
 	}
 
-	return &valueobject.Params{
-		QueryParams: paramsQuery,
-		Body:        paramsBody,
-	}, nil
+	return params, nil
 }

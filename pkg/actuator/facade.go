@@ -2,13 +2,12 @@ package actuator
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"serverless-dbapi/pkg/exception"
 	"serverless-dbapi/pkg/tool"
 	"serverless-dbapi/pkg/valueobject"
-
-	"github.com/goccy/go-json"
 )
 
 // show the actuator server api
@@ -31,25 +30,25 @@ func NewHttpActuatorServer() ActuatorServer {
 func (h *HttpActuatorServer) ApiActuator(params *valueobject.Params) tool.Result[any] {
 	url, err := tool.BuildURL("http://localhost:8081", params.QueryParams)
 	if err != nil {
-		return tool.ErrorResult(exception.BUILD_URL_ERROR)
+		return tool.ErrorResult[any](exception.BUILD_URL_ERROR)
 	}
 	bodyBytes, err := json.Marshal(params.Body)
 	if err != nil {
-		return tool.ErrorResult(exception.PARSE_REQUEST_ERROR)
+		return tool.ErrorResult[any](exception.PARSE_REQUEST_ERROR)
 	}
 	resp, err := h.client.Post(url, "application/json", bytes.NewReader(bodyBytes))
 	if err != nil {
-		return tool.ErrorResult(exception.RPC_ERROR)
+		return tool.ErrorResult[any](exception.RPC_ERROR)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return tool.ErrorResult(exception.RPC_RESPONSE_PARSE_ERROR)
+		return tool.ErrorResult[any](exception.RPC_RESPONSE_PARSE_ERROR)
 	}
 	data := &tool.Response[map[string]any]{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return tool.ErrorResult(exception.RPC_RESPONSE_PARSE_ERROR)
+		return tool.ErrorResult[any](exception.RPC_RESPONSE_PARSE_ERROR)
 	}
-	return tool.SuccessResult(data)
+	return tool.SuccessResult[any](data)
 }
