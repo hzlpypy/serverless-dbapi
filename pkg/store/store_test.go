@@ -66,7 +66,7 @@ func Test_Store(t *testing.T) {
 		t.Error("datasources count error")
 	}
 	for _, value := range datasources {
-		assert.Equal(t, value, database)
+		assert.Equal(t, *value, database)
 	}
 
 	apiGroups, err := etcdStore.GetApiGroups()
