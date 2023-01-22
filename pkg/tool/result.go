@@ -6,8 +6,12 @@ import (
 )
 
 type Result[T any] struct {
-	Data any
+	Data T
 	Err  *exception.BaseError
+}
+
+func (r *Result[T]) GetData() T {
+	return r.Data
 }
 
 func SuccessResult[T any](data T) Result[T] {
@@ -22,15 +26,13 @@ func ErrorResult[T any](err *exception.BaseError, args ...string) Result[T] {
 		err.Msg = fmt.Sprintf(err.Msg, args)
 	}
 	return Result[T]{
-		Data: nil,
-		Err:  err,
+		Err: err,
 	}
 }
 
 func SimpleErrorResult[T any](code int, msg string) Result[T] {
 	return Result[T]{
-		Data: nil,
-		Err:  exception.New(code, msg),
+		Err: exception.New(code, msg),
 	}
 }
 

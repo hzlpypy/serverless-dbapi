@@ -7,6 +7,7 @@ import (
 	"serverless-dbapi/pkg/cfg"
 	"serverless-dbapi/pkg/entity"
 	"serverless-dbapi/pkg/tool"
+	"serverless-dbapi/pkg/valueobject"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,9 +18,10 @@ type Store interface {
 	SaveDataBase(database entity.DatabaseConfig) (string, error)
 	SaveApiGroup(apiGroup entity.ApiGroupConfig) (string, error)
 	SaveApi(apiConfig entity.ApiConfig) (string, error)
-	GetDataBases() ([]*entity.DatabaseConfig, error)
-	GetApiGroups() ([]entity.ApiGroupConfig, error)
-	GetApis(apiGroupId string) ([]entity.ApiConfig, error)
+	GetAllDataBases() ([]*entity.DatabaseConfig, error)
+	GetDataBases(page valueobject.Cursor) ([]*entity.DatabaseConfig, error)
+	GetApiGroups(page valueobject.Cursor) ([]entity.ApiGroupConfig, error)
+	GetApis(apiGroupId string, page valueobject.Cursor) ([]entity.ApiConfig, error)
 	GetApi(apiId string) (*entity.ApiConfig, error)
 }
 
@@ -103,7 +105,7 @@ func fillId(entity entity.IdCommon) error {
 	return nil
 }
 
-func (e *EtcdStore) GetDataBases() ([]*entity.DatabaseConfig, error) {
+func (e *EtcdStore) GetAllDataBases() ([]*entity.DatabaseConfig, error) {
 	resp, err := e.client.Get(context.Background(), tool.StringBuilder(e.prefix, entity.DATASOURCE_PREFIX), clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
@@ -121,8 +123,43 @@ func (e *EtcdStore) GetDataBases() ([]*entity.DatabaseConfig, error) {
 	return []*entity.DatabaseConfig{}, nil
 }
 
-func (e *EtcdStore) GetApiGroups() ([]entity.ApiGroupConfig, error) {
-	resp, err := e.client.Get(context.Background(), tool.StringBuilder(e.prefix, entity.API_GROUP_PREFIX), clientv3.WithPrefix())
+func (e *EtcdStore) GetDataBases(page valueobject.Cursor) ([]*entity.DatabaseConfig, error) {
+	specialPage(&page)
+	resp, err := e.client.Get(
+		context.Background(),
+		tool.StringBuilder(e.prefix, entity.DATASOURCE_PREFIX, page.Continue),
+		clientv3.WithRange(tool.StringBuilder(e.prefix, "/datasource0")),
+		clientv3.WithSort(clientv3.SortByKey, clientv3.SortAscend),
+		clientv3.WithLimit(int64(page.Limit)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	kv := resp.Kvs
+
+	if len(kv) > 0 {
+		result := make([]*entity.DatabaseConfig, 0, len(kv))
+		for _, value := range kv {
+			data := &entity.DatabaseConfig{}
+			json.Unmarshal(value.Value, &data)
+			if data.Id != page.Continue {
+				result = append(result, data)
+			}
+		}
+		return result, nil
+	}
+	return []*entity.DatabaseConfig{}, nil
+}
+
+func (e *EtcdStore) GetApiGroups(page valueobject.Cursor) ([]entity.ApiGroupConfig, error) {
+	specialPage(&page)
+	resp, err := e.client.Get(
+		context.Background(),
+		tool.StringBuilder(e.prefix, entity.API_GROUP_PREFIX, page.Continue),
+		clientv3.WithRange(tool.StringBuilder(e.prefix, "/api-group0")),
+		clientv3.WithSort(clientv3.SortByKey, clientv3.SortAscend),
+		clientv3.WithLimit(int64(page.Limit)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -132,15 +169,24 @@ func (e *EtcdStore) GetApiGroups() ([]entity.ApiGroupConfig, error) {
 		for _, value := range kv {
 			data := &entity.ApiGroupConfig{}
 			json.Unmarshal(value.Value, &data)
-			result = append(result, *data)
+			if data.Id != page.Continue {
+				result = append(result, *data)
+			}
 		}
 		return result, nil
 	}
 	return []entity.ApiGroupConfig{}, nil
 }
 
-func (e *EtcdStore) GetApis(apiGroupId string) ([]entity.ApiConfig, error) {
-	resp, err := e.client.Get(context.Background(), tool.StringBuilder(e.prefix, entity.API_PREFIX, apiGroupId, "/"), clientv3.WithPrefix())
+func (e *EtcdStore) GetApis(apiGroupId string, page valueobject.Cursor) ([]entity.ApiConfig, error) {
+	specialPage(&page)
+	resp, err := e.client.Get(
+		context.Background(),
+		tool.StringBuilder(e.prefix, entity.API_PREFIX, apiGroupId, "/", page.Continue),
+		clientv3.WithRange(tool.StringBuilder(e.prefix, "/api0")),
+		clientv3.WithSort(clientv3.SortByKey, clientv3.SortAscend),
+		clientv3.WithLimit(int64(page.Limit)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +196,9 @@ func (e *EtcdStore) GetApis(apiGroupId string) ([]entity.ApiConfig, error) {
 		for _, value := range kv {
 			data := &entity.ApiConfig{}
 			json.Unmarshal(value.Value, &data)
-			result = append(result, *data)
+			if data.Id != page.Continue {
+				result = append(result, *data)
+			}
 		}
 		return result, nil
 	}
@@ -158,7 +206,10 @@ func (e *EtcdStore) GetApis(apiGroupId string) ([]entity.ApiConfig, error) {
 }
 
 func (e *EtcdStore) GetApi(apiId string) (*entity.ApiConfig, error) {
-	resp, err := e.client.Get(context.Background(), tool.StringBuilder(e.prefix, entity.API_PREFIX, apiId))
+	resp, err := e.client.Get(
+		context.Background(),
+		tool.StringBuilder(e.prefix, entity.API_PREFIX, apiId),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -169,4 +220,10 @@ func (e *EtcdStore) GetApi(apiId string) (*entity.ApiConfig, error) {
 		return data, nil
 	}
 	return nil, errors.New("api not found")
+}
+
+func specialPage(pageInfo *valueobject.Cursor) {
+	if pageInfo.Continue != "" {
+		pageInfo.Limit += 1
+	}
 }

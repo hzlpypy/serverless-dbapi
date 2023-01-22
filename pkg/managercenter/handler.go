@@ -7,6 +7,7 @@ import (
 	"serverless-dbapi/pkg/store"
 	"serverless-dbapi/pkg/tool"
 	"serverless-dbapi/pkg/valueobject"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -73,7 +74,11 @@ func (h *Handler) SaveApi(params *valueobject.Params) tool.Result[any] {
 }
 
 func (h *Handler) GetDataBases(params *valueobject.Params) tool.Result[any] {
-	databases, err := h.store.GetDataBases()
+	result := getPageInfo(params)
+	if result.IsError() {
+		return tool.ErrorResult[any](result.Err)
+	}
+	databases, err := h.store.GetDataBases(result.Data)
 	if err != nil {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
@@ -81,7 +86,11 @@ func (h *Handler) GetDataBases(params *valueobject.Params) tool.Result[any] {
 }
 
 func (h *Handler) GetApiGroups(params *valueobject.Params) tool.Result[any] {
-	apiGroups, err := h.store.GetApiGroups()
+	result := getPageInfo(params)
+	if result.IsError() {
+		return tool.ErrorResult[any](result.Err)
+	}
+	apiGroups, err := h.store.GetApiGroups(result.Data)
 	if err != nil {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
@@ -89,7 +98,11 @@ func (h *Handler) GetApiGroups(params *valueobject.Params) tool.Result[any] {
 }
 
 func (h *Handler) GetApis(params *valueobject.Params) tool.Result[any] {
-	apis, err := h.store.GetApis(params.QueryParams["apiGroupId"][0])
+	result := getPageInfo(params)
+	if result.IsError() {
+		return tool.ErrorResult[any](result.Err)
+	}
+	apis, err := h.store.GetApis(params.QueryParams["apiGroupId"][0], result.Data)
 	if err != nil {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
@@ -102,4 +115,23 @@ func (h *Handler) GetApi(params *valueobject.Params) tool.Result[any] {
 		return tool.SimpleErrorResult[any](500, err.Error())
 	}
 	return tool.SuccessResult[any](api)
+}
+
+func getPageInfo(params *valueobject.Params) tool.Result[valueobject.Cursor] {
+	if len(params.QueryParams["continue"]) != 1 || len(params.QueryParams["limit"]) != 1 {
+		return tool.ErrorResult[valueobject.Cursor](exception.REQUIRE_PARAM, "continue, limit")
+	}
+
+	continueKey := params.QueryParams["continue"][0]
+	limit, err := strconv.Atoi(params.QueryParams["limit"][0])
+	if err != nil {
+		return tool.ErrorResult[valueobject.Cursor](exception.REQUIRE_PARAM, "limit")
+	}
+
+	pageInfo := valueobject.Cursor{
+		Continue: continueKey,
+		Limit:    limit,
+	}
+
+	return tool.SuccessResult(pageInfo)
 }

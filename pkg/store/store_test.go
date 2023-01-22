@@ -2,6 +2,7 @@ package store
 
 import (
 	"serverless-dbapi/pkg/entity"
+	"serverless-dbapi/pkg/valueobject"
 	"testing"
 	"time"
 
@@ -58,7 +59,8 @@ func Test_Store(t *testing.T) {
 	etcdStore.SaveApi(apiOne)
 	etcdStore.SaveApi(apiTwo)
 
-	datasources, err := etcdStore.GetDataBases()
+	// all database
+	datasources, err := etcdStore.GetAllDataBases()
 	if err != nil {
 		t.Error(err)
 	}
@@ -69,7 +71,20 @@ func Test_Store(t *testing.T) {
 		assert.Equal(t, *value, database)
 	}
 
-	apiGroups, err := etcdStore.GetApiGroups()
+	// all database
+	datasources, err = etcdStore.GetDataBases(valueobject.Cursor{Continue: "", Limit: 1})
+	if err != nil {
+		t.Error(err)
+	}
+	if len(datasources) != 1 {
+		t.Error("datasources count error")
+	}
+	for _, value := range datasources {
+		assert.Equal(t, *value, database)
+	}
+
+	// all api groups
+	apiGroups, err := etcdStore.GetApiGroups(valueobject.Cursor{Continue: "", Limit: 2})
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,7 +101,24 @@ func Test_Store(t *testing.T) {
 		}
 	}
 
-	apis, err := etcdStore.GetApis("1")
+	// api group page
+	apiGroups, err = etcdStore.GetApiGroups(valueobject.Cursor{Continue: "1", Limit: 3})
+	if err != nil {
+		t.Error(err)
+	}
+	if len(apiGroups) != 1 {
+		t.Error("api group count error")
+	}
+	for _, value := range apiGroups {
+		if value.Id == "2" {
+			assert.Equal(t, value, apiGroupTwo)
+		} else {
+			t.Error("api group not exist")
+		}
+	}
+
+	// all api by api group id
+	apis, err := etcdStore.GetApis("1", valueobject.Cursor{Continue: "", Limit: 2})
 	if err != nil {
 		t.Error(err)
 	}
@@ -103,6 +135,7 @@ func Test_Store(t *testing.T) {
 		}
 	}
 
+	// api by api id
 	api, err := etcdStore.GetApi("1")
 	if err != nil {
 		t.Error(err)

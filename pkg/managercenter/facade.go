@@ -56,7 +56,7 @@ func (m *MemoryManagerCenterServer) GetApiConfigByApiId(apiId string) (*entity.A
 }
 
 func (m *MemoryManagerCenterServer) GetDataBases() ([]*entity.DatabaseConfig, error) {
-	return m.managerCenter.store.GetDataBases()
+	return m.managerCenter.store.GetAllDataBases()
 }
 
 type HttpManagerCenterServer struct {
