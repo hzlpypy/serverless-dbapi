@@ -1,11 +1,12 @@
 package main
 
 import (
+	"errors"
 	"os"
+	"serverless-dbapi/cmd/mode"
 	"serverless-dbapi/pkg/actuator"
 	"serverless-dbapi/pkg/cfg"
 	"serverless-dbapi/pkg/managercenter"
-	"serverless-dbapi/pkg/mode"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
@@ -27,7 +28,7 @@ func main() {
 	mode.MODE = config.Mode
 
 	// new manager center
-	managerCenterServer, err := managercenter.NewManagerCenterServer(config.ManagerCenter)
+	managerCenterServer, err := newManagerCenterServer(config.ManagerCenter)
 	if err != nil {
 		panic(err)
 	}
@@ -52,4 +53,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func newManagerCenterServer(config *cfg.ManagerCenterConfig) (managercenter.ManagerCenterServer, error) {
+	if mode.MODE == mode.MOCK {
+		return managercenter.NewMockManagerCenterServer()
+	}
+	if mode.MODE == mode.STANDALONE {
+		return managercenter.NewMemoryManagerCenterServer(config)
+	}
+	if mode.MODE == mode.CLUSTER {
+		return managercenter.NewHttpManagerCenterServer()
+	}
+	return nil, errors.New("manager center server not found")
 }

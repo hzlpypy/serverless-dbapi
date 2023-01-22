@@ -1,7 +1,9 @@
 package store
 
 import (
+	"context"
 	"serverless-dbapi/pkg/entity"
+	"serverless-dbapi/pkg/tool"
 	"serverless-dbapi/pkg/valueobject"
 	"testing"
 	"time"
@@ -19,9 +21,22 @@ func Test_Store(t *testing.T) {
 		t.Error(err)
 	}
 
-	etcdStore := &EtcdStore{}
-	etcdStore.client = cli
-	etcdStore.prefix = "/test-store"
+	// clean data
+	cli.Delete(context.Background(), "/test-store", clientv3.WithPrefix())
+
+	defer func() {
+		// clean data
+		cli.Delete(context.Background(), "/test-store", clientv3.WithPrefix())
+	}()
+
+	prefix := "/test-store"
+	etcdStore := &EtcdStore{
+		client:             cli,
+		prefix:             prefix,
+		saveApiPrefix:      tool.StringBuilder(prefix, entity.API_PREFIX),
+		saveDatabasePrefix: tool.StringBuilder(prefix, entity.DATASOURCE_PREFIX),
+		saveApiGroupPrefix: tool.StringBuilder(prefix, entity.API_GROUP_PREFIX),
+	}
 	database := entity.DatabaseConfig{
 		Id:         "1",
 		Name:       "datasource-1",

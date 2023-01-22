@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"serverless-dbapi/pkg/tool"
 	"time"
 )
 
@@ -36,10 +35,6 @@ func (d *DatabaseConfig) GetId() string {
 	return d.Id
 }
 
-func (d *DatabaseConfig) GetPrefixId() string {
-	return tool.StringBuilder(DATASOURCE_PREFIX, d.Id)
-}
-
 // api group info
 type ApiGroupConfig struct {
 	Id   string `json:"id,omitempty"`
@@ -52,10 +47,6 @@ func (d *ApiGroupConfig) SetId(id string) {
 
 func (d *ApiGroupConfig) GetId() string {
 	return d.Id
-}
-
-func (d *ApiGroupConfig) GetPrefixId() string {
-	return tool.StringBuilder(API_GROUP_PREFIX, d.Id)
 }
 
 // api config info
@@ -76,13 +67,7 @@ func (d *ApiConfig) GetId() string {
 	return d.Id
 }
 
-// for quickly select
-func (d *ApiConfig) GetPrefixId() string {
-	return tool.StringBuilder(API_GROUP_PREFIX, d.ApiGroupId, API_PREFIX, d.Id)
-}
-
 type IdCommon interface {
 	GetId() string
 	SetId(id string)
-	GetPrefixId() string
 }
