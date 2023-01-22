@@ -6,7 +6,7 @@ The database data is exposed to the http api through the serverless architecture
 
 ![image](resource/architecture-en.jpg)
 
-# Usage guide for release-0.0.1 (MacOS)
+# Usage guide for release-0.0.1
 
 ## standalone mode
 #### install etcd by docker-compose
@@ -83,16 +83,16 @@ go run main.go
 #### test server
 ```shell
 # add database
-curl -X POST -H "Content-Type: application/json" -d '{"name": "first","driverName": "mysql","url": "root:123456@tcp(localhost:3306)/test?charset=utf8"}' "http://localhost:8081/manager-center/database"
+curl -X POST -H "Content-Type: application/json" -d '{"id": "5662e9d0-9954-11ed-ac90-e6d8fb3d8925","name": "first","driverName": "mysql","url": "root:123456@tcp(localhost:3306)/test?charset=utf8"}' "http://localhost:8081/manager-center/database"
 # remember your database id from response data，my id is 5662e9d0-9954-11ed-ac90-e6d8fb3d8925
 
 # add api group
-curl -X POST -H "Content-Type: application/json" -d '{"name": "first"}' "http://localhost:8081/manager-center/api-group"
+curl -X POST -H "Content-Type: application/json" -d '{"id": "9a449292-995a-11ed-98d0-e6d8fb3d8925","name": "first"}' "http://localhost:8081/manager-center/api-group"
 
 # remember your api group id from response data, my id is 9a449292-995a-11ed-98d0-e6d8fb3d8925
 
 # add api
-curl -X POST -H "Content-Type: application/json" -d '{"apiGroupId": "9a449292-995a-11ed-98d0-e6d8fb3d8925","apiType": 1,"sql": "select * from tb_tmp01 where id = ? and deptId = ?","paramKey": ["id","deptId"],"dataSourceId": "5662e9d0-9954-11ed-ac90-e6d8fb3d8925"}' "http://localhost:8081/manager-center/api"
+curl -X POST -H "Content-Type: application/json" -d '{"id": "e47251d8-995a-11ed-98d0-e6d8fb3d8925","apiGroupId": "9a449292-995a-11ed-98d0-e6d8fb3d8925","apiType": 1,"sql": "select * from tb_tmp01 where id = ? and deptId = ?","paramKey": ["id","deptId"],"dataSourceId": "5662e9d0-9954-11ed-ac90-e6d8fb3d8925"}' "http://localhost:8081/manager-center/api"
 
 # remember your api id from response data, my id is e47251d8-995a-11ed-98d0-e6d8fb3d8925
 
@@ -100,7 +100,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"apiGroupId": "9a449292-99
 curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"deptId": 1}' "http://localhost:8081/actuator/api?apiId=e47251d8-995a-11ed-98d0-e6d8fb3d8925"
 ```
 
-desired response
+#### desired response
 
 ```json
 {
