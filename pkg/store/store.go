@@ -10,8 +10,8 @@ import (
 	"serverless-dbapi/pkg/valueobject"
 	"time"
 
+	"github.com/coreos/etcd/clientv3"
 	"github.com/google/uuid"
-	"go.etcd.io/etcd/clientv3"
 )
 
 type Store interface {
