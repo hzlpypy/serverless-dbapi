@@ -20,6 +20,7 @@ type Store interface {
 	SaveApi(apiConfig entity.ApiConfig) (string, error)
 	GetAllDataBases() ([]*entity.DatabaseConfig, error)
 	GetDataBases(page valueobject.Cursor) ([]*entity.DatabaseConfig, error)
+	GetDataBase(dataBaseId string) (*entity.DatabaseConfig, error)
 	GetApiGroups(page valueobject.Cursor) ([]entity.ApiGroupConfig, error)
 	GetApis(apiGroupId string, page valueobject.Cursor) ([]entity.ApiConfig, error)
 	GetApi(apiId string) (*entity.ApiConfig, error)
@@ -161,6 +162,23 @@ func (e *EtcdStore) GetDataBases(page valueobject.Cursor) ([]*entity.DatabaseCon
 		return result, nil
 	}
 	return []*entity.DatabaseConfig{}, nil
+}
+
+func (e *EtcdStore) GetDataBase(dataBaseId string) (*entity.DatabaseConfig, error) {
+	resp, err := e.client.Get(
+		context.Background(),
+		tool.StringBuilder(e.saveDatabasePrefix, dataBaseId),
+	)
+	if err != nil {
+		return nil, err
+	}
+	kv := resp.Kvs
+	if len(kv) > 0 {
+		data := &entity.DatabaseConfig{}
+		json.Unmarshal(kv[0].Value, &data)
+		return data, nil
+	}
+	return nil, errors.New("database not found")
 }
 
 func (e *EtcdStore) GetApiGroups(page valueobject.Cursor) ([]entity.ApiGroupConfig, error) {

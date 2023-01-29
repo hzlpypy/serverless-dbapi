@@ -2,6 +2,12 @@ mode: standalone
 server:
   port: 8081
 
+discovery:
+  etcd:
+    prefix: '/discovery'
+    endpoints: 
+        - '127.0.0.1:2379'
+
 actuator:
   databases:
     - id: '1'
@@ -11,6 +17,6 @@ actuator:
 manager-center:
   store:
     etcd:
-      prefix: '/prod'
+      prefix: '/manager-center'
       endpoints: 
         - '127.0.0.1:2379'

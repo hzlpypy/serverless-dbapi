@@ -3,7 +3,7 @@ package tool
 type Response[T any] struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
-	Data any    `json:"data"`
+	Data T      `json:"data"`
 }
 
 const SUCCESS_CODE = 0

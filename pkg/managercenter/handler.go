@@ -85,6 +85,14 @@ func (h *Handler) GetDataBases(params *valueobject.Params) tool.Result[any] {
 	return tool.SuccessResult[any](databases)
 }
 
+func (h *Handler) GetDataBase(params *valueobject.Params) tool.Result[any] {
+	database, err := h.store.GetDataBase(params.QueryParams["id"][0])
+	if err != nil {
+		return tool.SimpleErrorResult[any](500, err.Error())
+	}
+	return tool.SuccessResult[any](database)
+}
+
 func (h *Handler) GetApiGroups(params *valueobject.Params) tool.Result[any] {
 	result := getPageInfo(params)
 	if result.IsError() {

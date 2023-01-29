@@ -8,6 +8,8 @@ import (
 	"serverless-dbapi/pkg/exception"
 	"serverless-dbapi/pkg/tool"
 	"serverless-dbapi/pkg/valueobject"
+
+	edclient "github.com/kiraqjx/ed-client"
 )
 
 // show the actuator server api
@@ -18,6 +20,7 @@ type ActuatorServer interface {
 // impl by http client
 // TODO server LB
 type HttpActuatorServer struct {
+	Lb     *edclient.Lb
 	client *http.Client
 }
 
@@ -28,7 +31,8 @@ func NewHttpActuatorServer() ActuatorServer {
 }
 
 func (h *HttpActuatorServer) ApiActuator(params *valueobject.Params) tool.Result[any] {
-	url, err := tool.BuildURL("http://localhost:8081", params.QueryParams)
+	node := h.Lb.Lb()
+	url, err := tool.BuildURL(node.Server, params.QueryParams)
 	if err != nil {
 		return tool.ErrorResult[any](exception.BUILD_URL_ERROR)
 	}

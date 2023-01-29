@@ -8,8 +8,13 @@ import (
 type Config struct {
 	Serer         *ServerConfig        `yaml:"server"`
 	Mode          string               `yaml:"mode"`
+	Discovery     *DiscoveryConfig     `yaml:"discovery"`
 	Actuator      *ActuactorConfig     `yaml:"actuator"`
 	ManagerCenter *ManagerCenterConfig `yaml:"manager-center"`
+}
+
+type DiscoveryConfig struct {
+	Etcd *EtcdConfig `yaml:"etcd"`
 }
 
 // actuactor config

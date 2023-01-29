@@ -26,6 +26,7 @@ func New(config *cfg.ManagerCenterConfig) (*ManagerCenter, error) {
 	handleMap["POST/api-group"] = handle.SaveApiGroup
 	handleMap["POST/api"] = handle.SaveApi
 	handleMap["GET/databases"] = handle.GetDataBases
+	handleMap["GET/database"] = handle.GetDataBase
 	handleMap["GET/api-groups"] = handle.GetApiGroups
 	handleMap["GET/apis"] = handle.GetApis
 	handleMap["GET/api"] = handle.GetApi

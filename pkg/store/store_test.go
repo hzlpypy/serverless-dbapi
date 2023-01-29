@@ -98,6 +98,13 @@ func Test_Store(t *testing.T) {
 		assert.Equal(t, *value, database)
 	}
 
+	// single database
+	datasource, err := etcdStore.GetDataBase("1")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, *datasource, database)
+
 	// all api groups
 	apiGroups, err := etcdStore.GetApiGroups(valueobject.Cursor{Continue: "", Limit: 2})
 	if err != nil {
