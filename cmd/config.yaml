@@ -1,4 +1,4 @@
-mode: standalone
+mode: cluster
 server:
   port: 8081
 
@@ -10,13 +10,13 @@ discovery:
 
 actuator:
   databases:
-    - id: '1'
+    - id: '5662e9d0-9954-11ed-ac90-e6d8fb3d8925'
       driver-name: mysql
       url: 'root:123456@tcp(localhost:3306)/test?charset=utf8'
 
 manager-center:
   store:
     etcd:
-      prefix: '/manager-center'
+      prefix: '/prod'
       endpoints: 
         - '127.0.0.1:2379'

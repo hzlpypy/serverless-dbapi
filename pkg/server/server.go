@@ -13,6 +13,39 @@ import (
 
 type Server interface {
 	Run(addr ...string) error
+	Quit() error
+}
+
+var SERVER_GROUP = newServerGroup()
+
+type ServerGroup struct {
+	servers []Server
+}
+
+func newServerGroup() *ServerGroup {
+	return &ServerGroup{
+		servers: make([]Server, 0, 3),
+	}
+}
+
+func (s *ServerGroup) Run(addr ...string) error {
+	var err error
+	if len(s.servers) > 0 {
+		for _, server := range s.servers {
+			err = server.Run(addr...)
+		}
+	}
+	return err
+}
+
+func (s *ServerGroup) Quit() error {
+	var err error
+	if len(s.servers) > 0 {
+		for _, server := range s.servers {
+			err = server.Quit()
+		}
+	}
+	return err
 }
 
 var lock sync.Mutex
@@ -35,6 +68,10 @@ func (s *sharedServer) Run(addr ...string) error {
 		}
 		return err
 	}
+	return nil
+}
+
+func (s *sharedServer) Quit() error {
 	return nil
 }
 
@@ -63,7 +100,7 @@ func NewActuatorServer(function func(params *valueobject.Params) tool.Result[any
 		result := function(params)
 		ctx.JSON(200, tool.ResultToResponse(result))
 	})
-	return sharedServer.server
+	return sharedServer
 }
 
 func NewManagerCenterServer(functions map[string]func(params *valueobject.Params) tool.Result[any]) Server {
@@ -82,7 +119,7 @@ func NewManagerCenterServer(functions map[string]func(params *valueobject.Params
 		result := function(params)
 		ctx.JSON(200, tool.ResultToResponse(result))
 	})
-	return sharedServer.server
+	return sharedServer
 }
 
 // parse request

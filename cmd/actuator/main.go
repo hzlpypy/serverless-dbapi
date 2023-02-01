@@ -37,7 +37,7 @@ func main() {
 		panic(err)
 	}
 
-	if mode.MOCK != mode.CLUSTER {
+	if mode.MODE != mode.CLUSTER {
 		// if the mode is not cluster, get all databases for manager center
 		// if the mode is cluster, just get from config
 		config.Actuator.Databases, err = managerCenterServer.GetDataBases()
@@ -76,7 +76,7 @@ func newManagerCenterServer(config cfg.Config) (managercenter.ManagerCenterServe
 		}
 		// registrant actuator
 		registrant := edclient.NewRegistrant(cli,
-			"",
+			config.Discovery.Etcd.Prefix,
 			"/actuator",
 			// TODO get ip for network
 			&edclient.NodeInfo{Server: "http://127.0.0.1:8081"},
@@ -88,7 +88,7 @@ func newManagerCenterServer(config cfg.Config) (managercenter.ManagerCenterServe
 		}
 
 		// watch manager center
-		watcher := edclient.NewWatcher(cli, "", "/manager-center")
+		watcher := edclient.NewWatcher(cli, config.Discovery.Etcd.Prefix, "/manager-center")
 		err = watcher.Start(context.Background())
 		if err != nil {
 			registrant.Quit()

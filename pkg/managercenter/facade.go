@@ -100,13 +100,16 @@ type HttpManagerCenterServer struct {
 
 func NewHttpManagerCenterServer(lb *edclient.Lb) (*HttpManagerCenterServer, error) {
 	return &HttpManagerCenterServer{
-		Lb: lb,
+		Lb:     lb,
+		client: &http.Client{},
 	}, nil
 }
 
 func (h *HttpManagerCenterServer) GetApiConfigByApiId(apiId string) (*entity.ApiConfig, error) {
 	node := h.Lb.Lb()
-	params := &valueobject.Params{}
+	params := &valueobject.Params{
+		QueryParams: make(map[string][]string),
+	}
 	params.QueryParams["apiId"] = []string{apiId}
 	url, err := tool.BuildURL(tool.StringBuilder(node.Server, "/manager-center/api"), params.QueryParams)
 	if err != nil {
