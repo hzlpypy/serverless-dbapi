@@ -84,6 +84,8 @@ github.com/kiraqjx/ed-client v1.0.1 h1:wCYCA6xdo35DeLA1xs7xvolMA07k+ec5RWCtO9SV/
 github.com/kiraqjx/ed-client v1.0.1/go.mod h1:VVZ8EJ4UCMbA2n+iD2293AiFfZpCT0C04DsNDVObYB8=
 github.com/kiraqjx/ed-client v1.0.2 h1:OGL5XTva7n6N6e6Pl0qjBI0+xHdLz+kr6xHh8+WbzNs=
 github.com/kiraqjx/ed-client v1.0.2/go.mod h1:VVZ8EJ4UCMbA2n+iD2293AiFfZpCT0C04DsNDVObYB8=
+github.com/kiraqjx/ed-client v1.0.3 h1:jTJI6sf+LVHZzV8SljXX9EIlgG/Jgcbp+lQBn6OIKHE=
+github.com/kiraqjx/ed-client v1.0.3/go.mod h1:VVZ8EJ4UCMbA2n+iD2293AiFfZpCT0C04DsNDVObYB8=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
